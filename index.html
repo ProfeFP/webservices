@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Formulari Mobile</title>
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0a4/jquery.mobile-1.0a4.min.css" />
+<script src="http://code.jquery.com/jquery-1.5.2.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.0a4/jquery.mobile-1.0a4.min.js"></script>
+
+
+
+
+</head>
+
+<body>
+<div data-role="page" data-theme="b">
+<div data-role="header" data-theme="e">
+<h1> Lliga ACB </h1>
+</div>
+<div data-role="content">
+    <div = "formulari">
+<form action="formdata" method="post" id="formdata" name = "formulari" >
+
+
+<select id="jornada" name="jornada" onchange="carrega3(this.value)" >
+<option value="0"> Resultats</option>
+</select>
+
+
+<select id="llista" name="equips" onchange="carrega1(this.value)" >
+<option value="0"> Equips ACB</option>
+</select>
+
+<select id="llista2" name="jugadors" onchange="carrega2(this.value)" >
+<option value="0"> Jugadors</option>
+</select>
+
+</div>
+
+<div id="fitxa" style="width:700px; align: left;">
+<center><h3 id="titol">Fitxa del Jugador </h3></center>
+<div style="float:left; width:  400px;  "><img src="" id="imatge"   /></div>
+<div id ="dades" style= "float: right ;   text-align: left; width: 300px; height: 200px; " ></div>
+
+</div>  
+
+</div>
+</div>
+</body>
+<script type="text/javascript" > 
+for (x=1 ; x< 38; x++)
+{
+$('#jornada').append($('<option>', { 
+        value: x,
+        text : "Jornada " + x  
+    }));
+}
+
+
+
+</script>
+
+<script type="text/javascript" >
+$.ajax({
+type: "GET",
+url: "https://script.google.com/macros/s/AKfycbxiANCFBAbcidvCdmV4zdKQMyKEZxDcLBBjWgPnAmzgE8Wk2lo/exec?format=XML&accio=equips",
+dataType: "xml",
+success: function(xml) {
+var select = $('#llista');
+$(xml).find('equip').each(function(){
+var nom = $(this).attr('nom');
+var num = $(this).attr('num_equip');
+select.append('<option value="' + num + '">'+nom+"</option>");
+});
+}
+});
+</script>
+<script type="text/javascript">
+function carrega1(nom_equip) 
+{
+if(nom_equip != 0 ) 
+{
+   var url = "https://script.google.com/macros/s/AKfycbxiANCFBAbcidvCdmV4zdKQMyKEZxDcLBBjWgPnAmzgE8Wk2lo/exec?format=XML&accio=equip&equip=" + nom_equip; 
+      $.ajax({
+type: "GET",
+url:  url  ,
+dataType: "xml",
+success: function(xml) {
+var select = $('#llista2');
+$('#llista2').find('option:not(:first)').remove();
+$(xml).find('jugador').each(function(){
+var nom = $(this).find('nom').text();
+var id = $(this).find('id').text(); 
+select.append("<option value='" + id +"'>"+nom+"</option>");
+});
+}
+	}); 
+}
+}
+
+function carrega2(numero_jugador) 
+{
+	
+   var url = "https://script.google.com/macros/s/AKfycbxiANCFBAbcidvCdmV4zdKQMyKEZxDcLBBjWgPnAmzgE8Wk2lo/exec?format=XML&accio=jugador&id=" + numero_jugador; 
+   
+      $.ajax({
+type: "GET",
+url:  url  ,
+dataType: "xml",
+success: function(xml) {
+var pic = $('#imatge');
+$(xml).find('jugador').each(function(){
+var url_foto = $(this).find('foto').text();
+var nom = $(this).find('nom').text();
+var edat = $(this).find('edat').text();
+
+pic.attr("src", url_foto); 
+pic.attr("width",300); 
+$("#titol").text(nom);
+var fitxa = "Nom: <b>" + nom + "</b><br />"; 
+    fitxa = fitxa + "Edat: <b>" + edat + "</b><br />"; 
+$("#dades").html(fitxa); 
+});
+}
+	}); 
+
+ }
+
+
+function carrega3(num_jornada) 
+{
+	
+   var url = "https://script.google.com/macros/s/AKfycbxiANCFBAbcidvCdmV4zdKQMyKEZxDcLBBjWgPnAmzgE8Wk2lo/exec?format=JSON&accio=resultats&jornada=" + num_jornada+"&equip=" + formulari.equips.value; 
+   alert(url); 
+  
+  var missatge = '<table border="1" ><tr><td>Jornada</td><td>Data</td><td>Hora</td><td>E.Local</td><td>Resultat</td><td>E.Visitant</td></tr>'; 
+
+
+ $.getJSON(url, function(res) {
+ 	//alert(res.data[0].resultats[0].Hora); 
+    var text = ""; 
+ $.each(res.data, function(i, item) {
+ 	if (item.resultats[0] != null ) 
+ 	{
+  	missatge += "<tr>"; 
+  	
+ 	missatge += "<td>" + item.resultats[0].Jornada + "</td>"; 
+ 	missatge += "<td>" + item.resultats[0].Data + "</td>"; 
+ 	missatge += "<td>" + item.resultats[0].Hora + "</td>"; 
+ 	missatge += "<td>" + item.resultats[0].EquipLocal + "</td>"; 
+ 	missatge += "<td>" + item.resultats[0].Resultat + "</td>"; 
+ 	missatge += "<td>" + item.resultats[0].EquipVisitant + "</td>"; 
+ 	missatge += "</tr>" ; 
+ }
+ 
+
+});
+
+ $("#fitxa").html(missatge); 
+     });
+   
+  
+
+
+/*
+$.getJSON(url, function (json) {
+    alert(json.result);
+    $.each(json.list, function (i, fb) {
+        alert(fb.result);
+    });
+});
+*/
+
+}
+
+
+
+
+</script>
+
+
+</html>
